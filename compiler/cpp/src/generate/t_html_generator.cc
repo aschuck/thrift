@@ -528,6 +528,9 @@ void t_html_generator::print_form(t_function* tfunction) {
     print_form((*arg_iter)->get_type());
     f_out_ << "</td></tr>";
   }
+  f_out_ << "<tr><td colspan=3><button type=\"button\" class=\"btn\">";
+  f_out_ << tfunction->get_name();
+  f_out_ << "</td><tr>";
   f_out_ << "</table>";
 }
 
