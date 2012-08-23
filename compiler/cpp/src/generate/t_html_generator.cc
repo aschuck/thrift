@@ -560,8 +560,16 @@ void t_html_generator::print_form(t_type* ttype) {
         f_out_ << "</td></tr>";
       }
       f_out_ << "</table>";
-    } else {
-      // TODO
+    } else if (ttype->is_enum()) {
+      f_out_ << "<select>";
+      vector<t_enum_value*> constants = ((t_enum*)ttype)->get_constants();
+      vector<t_enum_value*>::iterator iter = constants.begin();
+      for ( ; iter != constants.end(); iter++) {
+        f_out_ << "<option value=\"" << (*iter)->get_value() << "\">";
+        f_out_ << (*iter)->get_name();
+        f_out_ << "</option>";
+      }
+      f_out_ << "</select>";
     }
   }
 }
