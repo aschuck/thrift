@@ -85,7 +85,10 @@ class t_html_generator : public t_generator {
   void print_const_value(t_const_value* tvalue);
   void print_fn_args_doc(t_function* tfunction);
 
-  void generate_js_includes();
+  void include_js       ();
+  void include_types_js (t_program* tprogram);
+  void include_services_js(t_program* tprogram);
+
   void print_form       (t_function* tfunction);
   void print_form       (t_type* ttype);
 
@@ -240,7 +243,7 @@ void t_html_generator::generate_program() {
   f_out_ << "<title>Thrift module: " << program_->get_name()
    << "</title>";
   if (gen_form_) {
-    generate_js_includes();
+    include_js();
   }
   f_out_ << "</head><body>" << endl
    << "<div class=\"container-fluid\">" << endl
@@ -531,16 +534,26 @@ void t_html_generator::print_fn_args_doc(t_function* tfunction) {
 /**
  * Generates script tags to include javascript for invoking all services.
  */
-void t_html_generator::generate_js_includes() {
+void t_html_generator::include_js() {
   // TODO(adam): Fix path of all JS files to work in all cases.
 
   f_out_ << "<script src=\"../../lib/js/thrift.js\" type=\"text/javascript\"></script>" << endl;
 
-  // Include the JS for the modules.
-  // TODO(adam): Include {program}_types.js for program_ and its get_includes()
- 
-  // Include the JS for the services.
-  vector<t_service*> services = program_->get_services();
+  include_types_js(program_);
+  include_services_js(program_);
+}
+
+void t_html_generator::include_types_js(t_program* tprogram) {
+  vector<t_program*> includes = tprogram->get_includes();
+  vector<t_program*>::iterator include_iter = includes.begin();
+  for ( ; include_iter != includes.end(); include_iter++) {
+    include_types_js(*include_iter);
+  }
+  f_out_ << "<script src=\"../gen-js/" << tprogram->get_name() << "_types.js\" type=\"text/javascript\"></script>" << endl;
+} 
+
+void t_html_generator::include_services_js(t_program* tprogram) {
+  vector<t_service*> services = tprogram->get_services();
   vector<t_service*>::iterator sv_iter;
   for (sv_iter = services.begin(); sv_iter != services.end(); ++sv_iter) {
     // Walk the service inheritance chain.
