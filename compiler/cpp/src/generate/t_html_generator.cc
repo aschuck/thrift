@@ -80,6 +80,9 @@ class t_html_generator : public t_generator {
   void print_const_value(t_const_value* tvalue);
   void print_fn_args_doc(t_function* tfunction);
 
+  void print_form       (t_function* tfunction);
+  void print_form       (t_type* ttype);
+
   std::ofstream f_out_;
 };
 
@@ -510,6 +513,57 @@ void t_html_generator::print_fn_args_doc(t_function* tfunction) {
 }
 
 /**
+ * Prints a form which can be used to invoke the function.
+ */
+void t_html_generator::print_form(t_function* tfunction) {
+  f_out_ << "<table class=\"table-bordered table-striped table-condensed\">";
+  vector<t_field*> args = tfunction->get_arglist()->get_members();
+  vector<t_field*>::iterator arg_iter = args.begin();
+  for ( ; arg_iter != args.end(); arg_iter++) {
+    f_out_ << "<tr><td>";
+    f_out_ << (*arg_iter)->get_name();
+    f_out_ << "</td><td>";
+    print_type((*arg_iter)->get_type());
+    f_out_ << "</td><td>";
+    print_form((*arg_iter)->get_type());
+    f_out_ << "</td></tr>";
+  }
+  f_out_ << "</table>";
+}
+
+void t_html_generator::print_form(t_type* ttype) {
+  if (ttype->is_container()) {
+    // TODO
+  } else if (ttype->is_base_type()) {
+    if (((t_base_type*)ttype)->is_bool()) {
+      // TODO: checkbox
+    } else {
+      f_out_ << "<input type=\"text\">";
+    }
+  } else {
+    if (ttype->is_typedef()) {
+      // TODO
+    } else if (ttype->is_struct()) {
+      f_out_ << "<table class=\"table-bordered table-striped table-condensed\">";
+      vector<t_field*> members = ((t_struct*)ttype)->get_members();
+      vector<t_field*>::iterator member_iter = members.begin();
+      for ( ; member_iter != members.end(); member_iter++) {
+        f_out_ << "<tr><td>";
+        f_out_ << (*member_iter)->get_name();
+        f_out_ << "</td><td>";
+        print_type((*member_iter)->get_type());
+        f_out_ << "</td><td>";
+        print_form((*member_iter)->get_type());
+        f_out_ << "</td></tr>";
+      }
+      f_out_ << "</table>";
+    } else {
+      // TODO
+    }
+  }
+}
+
+/**
  * Generates a typedef.
  *
  * @param ttypedef The type definition
@@ -685,6 +739,7 @@ void t_html_generator::generate_service(t_service* tservice) {
       f_out_ << endl;
     }
     f_out_ << "</pre>";
+    print_form(*fn_iter);
     print_doc(*fn_iter);
     print_fn_args_doc(*fn_iter);
     f_out_ << "</div>";
