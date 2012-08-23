@@ -84,6 +84,7 @@ class t_html_generator : public t_generator {
   void print_const_value(t_const_value* tvalue);
   void print_fn_args_doc(t_function* tfunction);
 
+  void generate_js_includes();
   void print_form       (t_function* tfunction);
   void print_form       (t_type* ttype);
 
@@ -236,7 +237,11 @@ void t_html_generator::generate_program() {
   f_out_ << "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />" << endl;
   f_out_ << "<link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"/>" << endl;
   f_out_ << "<title>Thrift module: " << program_->get_name()
-   << "</title></head><body>" << endl
+   << "</title>";
+  if (gen_form_) {
+    generate_js_includes();
+  }
+  f_out_ << "</head><body>" << endl
    << "<div class=\"container-fluid\">" << endl
    << "<h1>Thrift module: "
    << program_->get_name() << "</h1>" << endl;
@@ -519,6 +524,26 @@ void t_html_generator::print_fn_args_doc(t_function* tfunction) {
       }
       f_out_ << "</table>";
     }
+  }
+}
+
+/**
+ * Generates script tags to include javascript for invoking all services.
+ */
+void t_html_generator::generate_js_includes() {
+  // TODO(adam): Fix path of all JS files to work in all cases.
+
+  f_out_ << "<script src=\"../../lib/js/thrift.js\" type=\"text/javascript\"></script>" << endl;
+
+  // Include the JS for the modules.
+  // TODO(adam): Include {program}_types.js for program_ and its get_includes()
+ 
+  // Include the JS for the services.
+  vector<t_service*> services = program_->get_services();
+  vector<t_service*>::iterator sv_iter;
+  for (sv_iter = services.begin(); sv_iter != services.end(); ++sv_iter) {
+    const string& service_name = get_service_name(*sv_iter);
+    f_out_ << "<script src=\"../gen-js/" << service_name << ".js\" type=\"text/javascript\"></script>" << endl;
   }
 }
 
