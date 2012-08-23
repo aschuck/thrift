@@ -45,8 +45,12 @@ class t_html_generator : public t_generator {
       const std::string& option_string)
     : t_generator(program)
   {
-    (void) parsed_options;
     (void) option_string;  
+
+    std::map<std::string, std::string>::const_iterator iter;
+    iter = parsed_options.find("form");
+    gen_form_ = (iter != parsed_options.end());
+
     out_dir_base_ = "gen-html";
     escape_.clear();
     escape_['&']  = "&amp;";
@@ -84,6 +88,12 @@ class t_html_generator : public t_generator {
   void print_form       (t_type* ttype);
 
   std::ofstream f_out_;
+
+ private:
+  /**
+   * True if a form which allows invoking services should be generated.
+   */
+  bool gen_form_;
 };
 
 /**
@@ -750,12 +760,15 @@ void t_html_generator::generate_service(t_service* tservice) {
       f_out_ << endl;
     }
     f_out_ << "</pre>";
-    print_form(*fn_iter);
+    if (gen_form_) {
+      print_form(*fn_iter);
+    }
     print_doc(*fn_iter);
     print_fn_args_doc(*fn_iter);
     f_out_ << "</div>";
   }
 }
 
-THRIFT_REGISTER_GENERATOR(html, "HTML", "")
+THRIFT_REGISTER_GENERATOR(html, "HTML",
+"    form:            Generate form to invoke service.\n")
 
