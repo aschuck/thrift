@@ -20,6 +20,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <stack>
 #include <vector>
 #include <map>
 
@@ -542,8 +543,19 @@ void t_html_generator::generate_js_includes() {
   vector<t_service*> services = program_->get_services();
   vector<t_service*>::iterator sv_iter;
   for (sv_iter = services.begin(); sv_iter != services.end(); ++sv_iter) {
-    const string& service_name = get_service_name(*sv_iter);
-    f_out_ << "<script src=\"../gen-js/" << service_name << ".js\" type=\"text/javascript\"></script>" << endl;
+    // Walk the service inheritance chain.
+    // Scripts must be included after their ancestors as they depend on their contents.
+    stack<t_service*> inheritance;
+    t_service* sv_extends = *sv_iter;
+    for ( ; sv_extends != NULL; sv_extends = sv_extends->get_extends()) {
+      inheritance.push(sv_extends);
+    }
+
+    for ( ; !inheritance.empty(); inheritance.pop()) {
+      sv_extends = inheritance.top();
+      const string& service_name = get_service_name(sv_extends);
+      f_out_ << "<script src=\"../gen-js/" << service_name << ".js\" type=\"text/javascript\"></script>" << endl;
+    }
   }
 }
 
